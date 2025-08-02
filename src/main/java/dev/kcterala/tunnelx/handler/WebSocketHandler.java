@@ -1,17 +1,22 @@
+package dev.kcterala.tunnelx.handler;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.kcterala.tunnelx.model.TunnelMessage;
+import dev.kcterala.tunnelx.tunnel.TunnelConnection;
+import dev.kcterala.tunnelx.tunnel.TunnelManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class TunnelWebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
-    private static final Logger logger = LoggerFactory.getLogger(TunnelWebSocketHandler.class);
+public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
     private final TunnelManager tunnelManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
-    public TunnelWebSocketHandler(final TunnelManager tunnelManager) {
+    public WebSocketHandler(final TunnelManager tunnelManager) {
         this.tunnelManager = tunnelManager;
     }
     

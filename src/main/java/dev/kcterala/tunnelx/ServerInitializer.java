@@ -1,3 +1,8 @@
+package dev.kcterala.tunnelx;
+
+import dev.kcterala.tunnelx.handler.HttpRequestHandler;
+import dev.kcterala.tunnelx.handler.WebSocketHandler;
+import dev.kcterala.tunnelx.tunnel.TunnelManager;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
@@ -27,6 +32,6 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
         
         // WebSocket handler for tunnel connections
         pipeline.addLast(new WebSocketServerProtocolHandler("/tunnel", null, true, 1048576));
-        pipeline.addLast(new TunnelWebSocketHandler(tunnelManager));
+        pipeline.addLast(new WebSocketHandler(tunnelManager));
     }
 }

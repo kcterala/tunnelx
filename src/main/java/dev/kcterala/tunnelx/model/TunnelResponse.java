@@ -1,3 +1,5 @@
+package dev.kcterala.tunnelx.model;
+
 import java.util.Map;
 
 public class TunnelResponse {

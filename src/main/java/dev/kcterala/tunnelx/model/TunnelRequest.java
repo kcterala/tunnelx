@@ -1,6 +1,7 @@
+package dev.kcterala.tunnelx.model;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.HttpHeaders;
-
 
 import java.util.HashMap;
 import java.util.Map;

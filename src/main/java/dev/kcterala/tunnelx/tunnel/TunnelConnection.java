@@ -1,4 +1,10 @@
+package dev.kcterala.tunnelx.tunnel;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.kcterala.tunnelx.model.PendingRequest;
+import dev.kcterala.tunnelx.model.TunnelMessage;
+import dev.kcterala.tunnelx.model.TunnelRequest;
+import dev.kcterala.tunnelx.model.TunnelResponse;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
@@ -39,7 +45,7 @@ public class TunnelConnection {
             // Store callback for when response comes back
             // This would typically be handled by TunnelManager
             final PendingRequest pending = new PendingRequest(callback);
-             tunnelManager.addPendingRequest(requestId, pending);
+            tunnelManager.addPendingRequest(requestId, pending);
 
         } catch (final Exception e) {
             // Handle error

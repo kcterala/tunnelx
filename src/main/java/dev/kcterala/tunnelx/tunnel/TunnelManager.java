@@ -1,3 +1,8 @@
+package dev.kcterala.tunnelx.tunnel;
+
+import dev.kcterala.tunnelx.model.PendingRequest;
+import dev.kcterala.tunnelx.model.TunnelMessage;
+import dev.kcterala.tunnelx.model.TunnelResponse;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

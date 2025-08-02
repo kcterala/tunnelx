@@ -1,3 +1,6 @@
+package dev.kcterala.tunnelx;
+
+import dev.kcterala.tunnelx.tunnel.TunnelManager;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
@@ -8,12 +11,12 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TunnelServer {
-    private static final Logger logger = LoggerFactory.getLogger(TunnelServer.class);
+public class TunnelX {
+    private static final Logger logger = LoggerFactory.getLogger(TunnelX.class);
     private final int port;
     private final TunnelManager tunnelManager;
 
-    public TunnelServer(final int port) {
+    public TunnelX(final int port) {
         this.port = port;
         this.tunnelManager = new TunnelManager();
     }
@@ -41,6 +44,6 @@ public class TunnelServer {
 
     public static void main(final String[] args) throws InterruptedException {
         final int port = args.length > 0 ? Integer.parseInt(args[0]) : 8080;
-        new TunnelServer(port).start();
+        new TunnelX(port).start();
     }
 }
