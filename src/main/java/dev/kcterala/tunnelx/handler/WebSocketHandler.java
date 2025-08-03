@@ -16,6 +16,14 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     private final TunnelManager tunnelManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
+    // Environment variables with defaults
+    private static final String DOMAIN = System.getenv("TUNNEL_DOMAIN") != null ? 
+            System.getenv("TUNNEL_DOMAIN") : "localhost";
+    private static final String HTTP_SCHEME = System.getenv("TUNNEL_HTTP_SCHEME") != null ? 
+            System.getenv("TUNNEL_HTTP_SCHEME") : "http";
+    private static final String PORT = System.getenv("TUNNEL_PORT") != null ? 
+            ":" + System.getenv("TUNNEL_PORT") : "";
+    
     public WebSocketHandler(final TunnelManager tunnelManager) {
         this.tunnelManager = tunnelManager;
     }
@@ -67,7 +75,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         final TunnelMessage response = new TunnelMessage();
         response.setType("registered");
         response.setSubdomain(subdomain);
-        response.setPublicUrl("http://" + subdomain + ".localhost:8080");
+        response.setPublicUrl(HTTP_SCHEME + "://" + subdomain + "." + DOMAIN + PORT);
         
         sendMessage(ctx, response);
     }
@@ -78,8 +86,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     }
     
     private boolean isValidAuthToken(final String authToken) {
-        // Implement your authentication logic
-        return authToken != null && authToken.length() > 10;
+        final String staticAuthToken = System.getenv("staticAuthToken");
+        return staticAuthToken.equals(authToken);
     }
     
     private void sendMessage(final ChannelHandlerContext ctx, final TunnelMessage message) {
