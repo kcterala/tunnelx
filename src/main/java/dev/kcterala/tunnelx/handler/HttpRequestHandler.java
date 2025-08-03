@@ -26,6 +26,12 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         
         logger.info("Received request: {} {} from host: {}", request.method(), path, host);
         
+        // Health check endpoint
+        if ("/ping".equals(path)) {
+            sendPongResponse(ctx);
+            return;
+        }
+        
         // Check if this is a WebSocket upgrade request
         if (request.headers().get("Upgrade") != null && 
             request.headers().get("Upgrade").equalsIgnoreCase("websocket")) {
@@ -95,6 +101,21 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         );
         
         response.headers().set("Content-Type", "text/html; charset=UTF-8");
+        response.headers().set("Content-Length", response.content().readableBytes());
+        
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+    }
+    
+    private void sendPongResponse(final ChannelHandlerContext ctx) {
+        final String content = "pong";
+        
+        final FullHttpResponse response = new DefaultFullHttpResponse(
+            HttpVersion.HTTP_1_1,
+            HttpResponseStatus.OK,
+            Unpooled.copiedBuffer(content, CharsetUtil.UTF_8)
+        );
+        
+        response.headers().set("Content-Type", "text/plain; charset=UTF-8");
         response.headers().set("Content-Length", response.content().readableBytes());
         
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
