@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.kcterala.tunnelx.model.TunnelMessage;
 import dev.kcterala.tunnelx.tunnel.TunnelConnection;
 import dev.kcterala.tunnelx.tunnel.TunnelManager;
+import dev.kcterala.tunnelx.utils.ResponseUtils;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
@@ -17,12 +18,17 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     // Environment variables with defaults
-    private static final String DOMAIN = System.getenv("TUNNEL_DOMAIN") != null ? 
-            System.getenv("TUNNEL_DOMAIN") : "localhost";
-    private static final String HTTP_SCHEME = System.getenv("TUNNEL_HTTP_SCHEME") != null ? 
-            System.getenv("TUNNEL_HTTP_SCHEME") : "http";
-    private static final String PORT = System.getenv("TUNNEL_PORT") != null ? 
-            ":" + System.getenv("TUNNEL_PORT") : "";
+    private static final String DOMAIN = System.getenv("TUNNEL_DOMAIN") != null
+            ? System.getenv("TUNNEL_DOMAIN")
+            : "localhost";
+
+    private static final String HTTP_SCHEME = System.getenv("TUNNEL_HTTP_SCHEME") != null
+            ? System.getenv("TUNNEL_HTTP_SCHEME")
+            : "http";
+
+    private static final String PORT = System.getenv("TUNNEL_PORT") != null
+            ? ":" + System.getenv("TUNNEL_PORT")
+            : "";
     
     public WebSocketHandler(final TunnelManager tunnelManager) {
         this.tunnelManager = tunnelManager;
@@ -35,20 +41,26 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
             handleMessage(ctx, text);
         }
     }
+
+    @Override
+    public void channelInactive(final ChannelHandlerContext ctx) {
+        // Clean up tunnel when connection closes
+        tunnelManager.removeChannel(ctx.channel());
+        try {
+            super.channelInactive(ctx);
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
     
     private void handleMessage(final ChannelHandlerContext ctx, final String message) {
         try {
             final TunnelMessage tunnelMessage = objectMapper.readValue(message, TunnelMessage.class);
             
             switch (tunnelMessage.getType()) {
-                case "register":
-                    handleRegister(ctx, tunnelMessage);
-                    break;
-                case "response":
-                    handleResponse(ctx, tunnelMessage);
-                    break;
-                default:
-                    logger.warn("Unknown message type: {}", tunnelMessage.getType());
+                case "register" -> handleRegister(ctx, tunnelMessage);
+                case "response" -> handleResponse(ctx, tunnelMessage);
+                default -> logger.warn("Unknown message type: {}", tunnelMessage.getType());
             }
         } catch (final Exception e) {
             logger.error("Error handling message: {}", message, e);
@@ -58,10 +70,9 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     private void handleRegister(final ChannelHandlerContext ctx, final TunnelMessage message) {
         final String subdomain = message.getSubdomain();
         final String authToken = message.getAuthToken();
-        
-        // Validate auth token (implement your auth logic)
+
         if (!isValidAuthToken(authToken)) {
-            sendError(ctx, "Invalid auth token");
+            ResponseUtils.sendError(ctx, "Invalid auth token");
             return;
         }
         
@@ -77,7 +88,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         response.setSubdomain(subdomain);
         response.setPublicUrl(HTTP_SCHEME + "://" + subdomain + "." + DOMAIN + PORT);
         
-        sendMessage(ctx, response);
+        ResponseUtils.sendMessage(ctx, response);
     }
     
     private void handleResponse(final ChannelHandlerContext ctx, final TunnelMessage message) {
@@ -90,30 +101,5 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         return staticAuthToken.equals(authToken);
     }
     
-    private void sendMessage(final ChannelHandlerContext ctx, final TunnelMessage message) {
-        try {
-            final String json = objectMapper.writeValueAsString(message);
-            ctx.writeAndFlush(new TextWebSocketFrame(json));
-        } catch (final Exception e) {
-            logger.error("Error sending message", e);
-        }
-    }
-    
-    private void sendError(final ChannelHandlerContext ctx, final String error) {
-        final TunnelMessage message = new TunnelMessage();
-        message.setType("error");
-        message.setError(error);
-        sendMessage(ctx, message);
-    }
-    
-    @Override
-    public void channelInactive(final ChannelHandlerContext ctx) {
-        // Clean up tunnel when connection closes
-        tunnelManager.removeChannel(ctx.channel());
-        try {
-            super.channelInactive(ctx);
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+
 }
