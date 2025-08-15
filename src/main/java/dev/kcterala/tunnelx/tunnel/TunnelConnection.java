@@ -12,16 +12,16 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class TunnelConnection {
-    private final String subDomain;
+    private final String subdomain;
     private final Channel channel;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public TunnelConnection(final String subDomain, final Channel channel) {
-        this.subDomain = subDomain;
+    public TunnelConnection(final String subdomain, final Channel channel) {
+        this.subdomain = subdomain;
         this.channel = channel;
     }
 
-    public String getSubDomain() { return subDomain; }
+    public String getSubDomain() { return subdomain; }
     public Channel getChannel() { return channel; }
 
     public String sendRequest(final TunnelRequest request) throws Exception {

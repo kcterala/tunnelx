@@ -41,14 +41,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     }
 
     @Override
-    public void channelInactive(final ChannelHandlerContext ctx) {
+    public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
         // Clean up tunnel when connection closes
         TunnelManager.getInstance().removeChannel(ctx.channel());
-        try {
-            super.channelInactive(ctx);
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        }
+        super.channelInactive(ctx);
     }
     
     private void handleMessage(final ChannelHandlerContext ctx, final String message) {

@@ -1,6 +1,5 @@
 package dev.kcterala.tunnelx;
 
-import dev.kcterala.tunnelx.tunnel.TunnelManager;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;

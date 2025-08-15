@@ -8,15 +8,14 @@ import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class TunnelManager {
     private static final Logger log = LoggerFactory.getLogger(TunnelManager.class);
     private static final TunnelManager INSTANCE = new TunnelManager();
-    
-    private final Map<String, TunnelConnection> tunnels = new HashMap<>();
+
     private final Map<String, TunnelConnection> tunnels = new ConcurrentHashMap<>();
     private final Map<String, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
 
