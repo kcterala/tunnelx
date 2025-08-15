@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketHandler.class);
-    private final TunnelManager tunnelManager;
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     // Environment variables with defaults
@@ -30,8 +29,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
             ? ":" + System.getenv("TUNNEL_PORT")
             : "";
     
-    public WebSocketHandler(final TunnelManager tunnelManager) {
-        this.tunnelManager = tunnelManager;
+    public WebSocketHandler() {
     }
     
     @Override
@@ -43,14 +41,10 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     }
 
     @Override
-    public void channelInactive(final ChannelHandlerContext ctx) {
+    public void channelInactive(final ChannelHandlerContext ctx) throws Exception {
         // Clean up tunnel when connection closes
-        tunnelManager.removeChannel(ctx.channel());
-        try {
-            super.channelInactive(ctx);
-        } catch (final Exception e) {
-            throw new RuntimeException(e);
-        }
+        TunnelManager.getInstance().removeChannel(ctx.channel());
+        super.channelInactive(ctx);
     }
     
     private void handleMessage(final ChannelHandlerContext ctx, final String message) {
@@ -77,8 +71,8 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
         }
         
         // Register tunnel
-        final TunnelConnection tunnel = new TunnelConnection(subdomain, ctx.channel(), tunnelManager);
-        tunnelManager.registerTunnel(subdomain, tunnel);
+        final TunnelConnection tunnel = new TunnelConnection(subdomain, ctx.channel());
+        TunnelManager.getInstance().registerTunnel(subdomain, tunnel);
         
         logger.info("Registered tunnel for subdomain: {}", subdomain);
         
@@ -93,7 +87,7 @@ public class WebSocketHandler extends SimpleChannelInboundHandler<WebSocketFrame
     
     private void handleResponse(final ChannelHandlerContext ctx, final TunnelMessage message) {
         // Handle response from client back to original requester
-        tunnelManager.handleTunnelResponse(message);
+        TunnelManager.getInstance().handleTunnelResponse(message);
     }
     
     private boolean isValidAuthToken(final String authToken) {

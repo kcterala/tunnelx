@@ -13,10 +13,8 @@ import org.slf4j.LoggerFactory;
 @ChannelHandler.Sharable
 public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static final Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
-    private final TunnelManager tunnelManager;
     
-    public HttpRequestHandler(final TunnelManager tunnelManager) {
-        this.tunnelManager = tunnelManager;
+    public HttpRequestHandler() {
     }
     
     @Override
@@ -43,7 +41,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         // Extract subdomain for tunnel routing
         if (host != null && host.contains(".")) {
             final String subdomain = extractSubdomain(host);
-            final TunnelConnection tunnel = tunnelManager.getTunnel(subdomain);
+            final TunnelConnection tunnel = TunnelManager.getInstance().getTunnel(subdomain);
             
             if (tunnel != null) {
                 // Forward request to tunnel
@@ -71,7 +69,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         );
         
         // Send to tunnel connection
-        tunnel.forwardRequest(tunnelRequest, response -> {
+        TunnelManager.getInstance().forwardRequest(tunnel, tunnelRequest, response -> {
             // Send response back to client
             final FullHttpResponse httpResponse = new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1,
@@ -91,7 +89,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
         final String content = "<!DOCTYPE html>" +
                 "<html><head><title>Tunnel Server</title></head>" +
                 "<body><h1>Tunnel Server Running</h1>" +
-                "<p>Active tunnels: " + tunnelManager.getActiveTunnelCount() + "</p>" +
+                "<p>Active tunnels: " + TunnelManager.getInstance().getActiveTunnelCount() + "</p>" +
                 "</body></html>";
         
         final FullHttpResponse response = new DefaultFullHttpResponse(

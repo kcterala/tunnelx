@@ -64,6 +64,98 @@ mvn clean package
 java -cp target/classes dev.kcterala.tunnelx.TunnelX
 ```
 
+## How It Works
+
+### Architecture Overview
+
+The tunnel server uses a singleton `TunnelManager` to coordinate all tunnel operations. Here's the complete flow:
+
+```
+Client (Local Service) ←→ WebSocket ←→ Tunnel Server ←→ HTTP ←→ End User
+```
+
+### Detailed Flow
+
+#### 1. Tunnel Registration
+1. **Client connects** to WebSocket endpoint `/tunnel`
+2. **Client sends registration message**:
+   ```json
+   {
+     "type": "register",
+     "subdomain": "myapp",
+     "authToken": "your-auth-token"
+   }
+   ```
+3. **Server validates** the auth token
+4. **TunnelManager creates** a `TunnelConnection` instance
+5. **Server responds** with public URL:
+   ```json
+   {
+     "type": "registered",
+     "subdomain": "myapp",
+     "publicUrl": "http://myapp.yourdomain.com"
+   }
+   ```
+
+#### 2. HTTP Request Forwarding
+1. **End user makes HTTP request** to `http://myapp.yourdomain.com/api/data`
+2. **HttpRequestHandler receives** the request
+3. **Extracts subdomain** (`myapp`) from the Host header
+4. **TunnelManager finds** the corresponding `TunnelConnection`
+5. **Creates TunnelRequest** with method, path, headers, and body
+6. **TunnelManager.forwardRequest()** handles the request lifecycle:
+   - Generates unique `requestId`
+   - Stores callback in `pendingRequests` map
+   - Calls `TunnelConnection.sendRequest()`
+7. **TunnelConnection sends** WebSocket message to client:
+   ```json
+   {
+     "type": "request",
+     "requestId": "uuid-123",
+     "method": "GET",
+     "path": "/api/data",
+     "headers": {...},
+     "body": "..."
+   }
+   ```
+
+#### 3. Response Handling
+1. **Client processes** the request locally
+2. **Client sends response** back via WebSocket:
+   ```json
+   {
+     "type": "response",
+     "requestId": "uuid-123",
+     "statusCode": 200,
+     "headers": {...},
+     "body": "..."
+   }
+   ```
+3. **WebSocketHandler receives** the response
+4. **TunnelManager.handleTunnelResponse()** processes it:
+   - Finds pending request by `requestId`
+   - Removes from `pendingRequests` map
+   - Executes stored callback
+5. **HttpRequestHandler** receives response via callback
+6. **Converts to HTTP response** and sends to end user
+
+#### 4. Connection Cleanup
+1. **When WebSocket disconnects**, `channelInactive()` is triggered
+2. **TunnelManager.removeChannel()** cleans up:
+   - Removes tunnel from active tunnels
+   - Logs tunnel removal
+
+### Key Components
+
+- **TunnelManager** (Singleton): Central coordinator for all tunnel operations
+- **TunnelConnection**: Handles WebSocket communication with clients
+- **HttpRequestHandler**: Processes incoming HTTP requests and routes to tunnels
+- **WebSocketHandler**: Manages WebSocket connections and message parsing
+- **ServerInitializer**: Sets up Netty pipeline with handlers
+
+### Health Check
+The server provides a health check endpoint at `/ping` that returns `pong`.
+
 ## Usage
 
 1. Start the tunnel server
