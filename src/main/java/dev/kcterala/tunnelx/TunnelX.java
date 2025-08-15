@@ -14,11 +14,9 @@ import org.slf4j.LoggerFactory;
 public class TunnelX {
     private static final Logger logger = LoggerFactory.getLogger(TunnelX.class);
     private final int port;
-    private final TunnelManager tunnelManager;
 
     public TunnelX(final int port) {
         this.port = port;
-        this.tunnelManager = new TunnelManager();
     }
 
     public void start() throws InterruptedException {
@@ -30,7 +28,7 @@ public class TunnelX {
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new ServerInitializer(tunnelManager));
+                    .childHandler(new ServerInitializer());
 
             final Channel ch = b.bind(port).sync().channel();
             logger.info("Tunnel server started on port {}", port);

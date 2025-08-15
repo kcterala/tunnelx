@@ -14,10 +14,8 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 public class ServerInitializer extends ChannelInitializer<SocketChannel> {
     /** Maximum payload size (8 MiB) allowed for HTTP aggregation and WebSocket frames. */
     private static final int MAX_MESSAGE_SIZE_BYTES = 8 * 1024 * 1024;
-    private final TunnelManager tunnelManager;
     
-    public ServerInitializer(final TunnelManager tunnelManager) {
-        this.tunnelManager = tunnelManager;
+    public ServerInitializer() {
     }
     
     @Override
@@ -30,10 +28,10 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
         pipeline.addLast(new ChunkedWriteHandler());
         
         // Custom handler for routing
-        pipeline.addLast(new HttpRequestHandler(tunnelManager));
+        pipeline.addLast(new HttpRequestHandler());
         
         // WebSocket handler for tunnel connections
         pipeline.addLast(new WebSocketServerProtocolHandler("/tunnel", null, true, MAX_MESSAGE_SIZE_BYTES));
-        pipeline.addLast(new WebSocketHandler(tunnelManager));
+        pipeline.addLast(new WebSocketHandler());
     }
 }
