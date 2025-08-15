@@ -17,7 +17,8 @@ public class TunnelManager {
     private static final TunnelManager INSTANCE = new TunnelManager();
     
     private final Map<String, TunnelConnection> tunnels = new HashMap<>();
-    private final Map<String, PendingRequest> pendingRequests = new HashMap<>();
+    private final Map<String, TunnelConnection> tunnels = new ConcurrentHashMap<>();
+    private final Map<String, PendingRequest> pendingRequests = new ConcurrentHashMap<>();
 
     private TunnelManager() {
         // Private constructor to prevent instantiation
