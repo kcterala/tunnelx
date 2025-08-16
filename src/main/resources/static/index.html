@@ -181,7 +181,7 @@
     <div class="dashboard">
         <div class="header">
             <h1>🚇 Tunnel Server Dashboard</h1>
-            <p>Real-time monitoring and management</p>
+<!--            <p>Real-time monitoring and management</p>-->
         </div>
         
         <div class="stats-grid">
@@ -196,6 +196,40 @@
             <div class="stat-card">
                 <div class="stat-value" id="uptime">0m</div>
                 <div class="stat-label">Server Uptime</div>
+            </div>
+        </div>
+        
+        <div class="panel" style="margin-bottom: 30px;">
+            <h3>🔗 How to Connect to Tunnel Service</h3>
+            <div style="line-height: 1.6; color: #cccccc;">
+
+                
+                <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; border: 1px solid #404040; margin: 15px 0;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">1. Install the Client</h4>
+                    <p>Download and install the tunnel client from the <a href="https://github.com/kcterala/kcx" style="color: #4CAF50; text-decoration: none;" target="_blank">kcx repository</a>.</p>
+                </div>
+                
+                <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; border: 1px solid #404040; margin: 15px 0;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">2. Get Your Auth Token</h4>
+                    <p>Contact <a href="https://kcterala.dev" target="_blank" style="color: #4CAF50; text-decoration: none;">kcterala.dev</a> to request your authentication token.</p>
+                </div>
+                
+                <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; border: 1px solid #404040; margin: 15px 0;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">3. Start Your Tunnel</h4>
+                    <p>Use the client to create a tunnel to your local application:</p>
+                    <code style="background: #0d1117; padding: 8px 12px; border-radius: 4px; font-family: 'Courier New', monospace; color: #58a6ff; display: block; margin-top: 8px;">
+                        kcx http [portNumber] --subdomain [subDomain]
+                    </code>
+                </div>
+                
+                <div style="background: #1e1e1e; padding: 15px; border-radius: 6px; border: 1px solid #404040; margin: 15px 0;">
+                    <h4 style="color: #4CAF50; margin-bottom: 10px;">4. Access Your Application</h4>
+                    <p>Your local application will be available at: <code style="background: #0d1117; padding: 4px 8px; border-radius: 3px; color: #58a6ff;">https://[subDomain].tunnel.kcterala.dev</code></p>
+                </div>
+                
+                <p style="margin-top: 20px; font-size: 0.9em; color: #888;">
+                    💡 <strong>Tip:</strong> Use the subdomain availability checker above to ensure your desired subdomain is available before connecting.
+                </p>
             </div>
         </div>
         
