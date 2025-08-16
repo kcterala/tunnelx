@@ -9,16 +9,22 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class TunnelManager {
     private static final Logger log = LoggerFactory.getLogger(TunnelManager.class);
     private final Map<String, TunnelConnection> tunnels = new HashMap<>();
     private final Map<String, PendingRequest> pendingRequests = new HashMap<>();
+    private final long startTime = System.currentTimeMillis();
+    private final AtomicLong totalTunnelCount = new AtomicLong(0);
 
 
     public void registerTunnel(final String subdomain, final TunnelConnection tunnel) {
         tunnels.put(subdomain, tunnel);
+        totalTunnelCount.incrementAndGet();
         log.info("Tunnel registered: {}", subdomain);
+        // Push update to dashboard
+        notifyDashboard();
     }
 
     public TunnelConnection getTunnel(final String subdomain) {
@@ -26,13 +32,17 @@ public class TunnelManager {
     }
 
     public void removeChannel(final Channel channel) {
-        tunnels.entrySet().removeIf(entry -> {
+        boolean removed = tunnels.entrySet().removeIf(entry -> {
             if (entry.getValue().getChannel().equals(channel)) {
                 log.info("Removing tunnel for closed channel: {}", entry.getKey());
                 return true;
             }
             return false;
         });
+        if (removed) {
+            // Push update to dashboard
+            notifyDashboard();
+        }
     }
 
     public int getActiveTunnelCount() {
@@ -59,6 +69,34 @@ public class TunnelManager {
 
     public void removePendingRequest(final String requestId) {
         pendingRequests.remove(requestId);
+    }
+
+    public long getTotalTunnelCount() {
+        return totalTunnelCount.get();
+    }
+
+    public long getUptimeSeconds() {
+        return (System.currentTimeMillis() - startTime) / 1000;
+    }
+
+
+    public boolean isSubdomainTaken(final String subdomain) {
+        return tunnels.containsKey(subdomain);
+    }
+
+    public Map<String, TunnelConnection> getActiveTunnels() {
+        return new HashMap<>(tunnels);
+    }
+
+    private void notifyDashboard() {
+        try {
+            // Use reflection to avoid circular dependency
+            Class<?> sseManagerClass = Class.forName("dev.kcterala.tunnelx.utils.SSEManager");
+            java.lang.reflect.Method broadcastMethod = sseManagerClass.getMethod("broadcastStats", TunnelManager.class);
+            broadcastMethod.invoke(null, this);
+        } catch (Exception e) {
+            // Silently ignore if SSEManager is not available
+        }
     }
 
 }

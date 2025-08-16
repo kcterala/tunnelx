@@ -16,6 +16,7 @@ public class TunnelConnection {
     private final Channel channel;
     private final TunnelManager tunnelManager;
     private final ObjectMapper mapper = new ObjectMapper();
+    private final long connectedTime = System.currentTimeMillis();
 
     public TunnelConnection(final String subDomain, final Channel channel, final TunnelManager tunnelManager) {
         this.subDomain = subDomain;
@@ -25,6 +26,7 @@ public class TunnelConnection {
 
     public String getSubDomain() { return subDomain; }
     public Channel getChannel() { return channel; }
+    public long getConnectedTime() { return connectedTime; }
 
     public void forwardRequest(final TunnelRequest request, final Consumer<TunnelResponse> callback) {
         final String requestId = UUID.randomUUID().toString();
