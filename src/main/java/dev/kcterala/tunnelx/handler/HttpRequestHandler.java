@@ -99,12 +99,21 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
     }
     
     private boolean isMainDomain(final String host) {
-        // Check if host is the main domain (no subdomain)
-        // For tunnel.name.dev, this would be exactly "tunnel.name.dev"
+        // Check if host is the main domain (no subdomain prefix for tunnels)
         // For localhost:8080, this would be exactly "localhost:8080"
-        final String[] parts = host.split("\\.");
-        return parts.length <= 2 || 
-               (parts.length == 3 && (host.contains("localhost") || host.equals("tunnel")));
+        // For deployment domains, check if there's a tunnel subdomain prefix
+        if (host.contains("localhost")) {
+            return true; // Always serve static files for localhost
+        }
+        
+        // Extract potential subdomain
+        final String subdomain = extractSubdomain(host);
+        
+        // If no subdomain or subdomain is empty, this is the main domain
+        // Also check if subdomain matches common deployment prefixes that should serve static files
+        return subdomain == null || subdomain.isEmpty() || 
+               subdomain.equals("www") || subdomain.equals("app") || 
+               subdomain.equals("tunnel") || subdomain.equals("api");
     }
     
     private void forwardToTunnel(final ChannelHandlerContext ctx, final FullHttpRequest request, final TunnelConnection tunnel) {
