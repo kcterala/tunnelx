@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tunnel Server Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #1e1e1e;
+            min-height: 100vh;
+            padding: 20px;
+            color: #ffffff;
+        }
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #2a2a2a;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            text-align: center;
+            border: 1px solid #404040;
+        }
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #cccccc;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .panel {
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 1px solid #404040;
+        }
+        .panel h3 {
+            margin-bottom: 20px;
+            color: #ffffff;
+            border-bottom: 2px solid #404040;
+            padding-bottom: 10px;
+        }
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #404040;
+            border-radius: 6px;
+            font-size: 16px;
+            background: #1e1e1e;
+            color: #ffffff;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .search-btn {
+            padding: 12px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .search-btn:hover {
+            background: #45a049;
+        }
+        .search-result {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+        .available {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .unavailable {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .tunnel-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .tunnel-item {
+            padding: 15px;
+            border: 1px solid #404040;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e1e1e;
+        }
+        .tunnel-subdomain {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .tunnel-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            z-index: 1000;
+        }
+        .connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">Connecting...</div>
+    
+    <div class="dashboard">
+        <div class="header">
+            <h1>🚇 Tunnel Server Dashboard</h1>
+            <p>Real-time monitoring and management</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalTunnels">0</div>
+                <div class="stat-label">Total Tunnels</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="activeTunnels">0</div>
+                <div class="stat-label">Active Tunnels</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="uptime">0m</div>
+                <div class="stat-label">Server Uptime</div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="panel">
+                <h3>Subdomain Availability Check</h3>
+                <div class="search-container">
+                    <input type="text" class="search-input" id="subdomainInput" placeholder="Enter subdomain to check...">
+                    <button class="search-btn" onclick="checkAvailability()">Check</button>
+                </div>
+                <div id="searchResult"></div>
+            </div>
+            
+            <div class="panel">
+                <h3>Active Tunnels</h3>
+                <div class="tunnel-list" id="tunnelList">
+                    <p style="text-align: center; color: #666; padding: 20px;">No active tunnels</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let eventSource = null;
+        let reconnectAttempts = 0;
+        let maxReconnectAttempts = 10;
+        let lastHeartbeat = Date.now();
+        let connectionCheckInterval = null;
+
+        function connectSSE() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            document.getElementById('connectionStatus').textContent = 'Connecting...';
+            document.getElementById('connectionStatus').className = 'connection-status disconnected';
+            
+            eventSource = new EventSource('/events');
+            
+            eventSource.onopen = function() {
+                document.getElementById('connectionStatus').textContent = 'Connected';
+                document.getElementById('connectionStatus').className = 'connection-status connected';
+                reconnectAttempts = 0;
+                lastHeartbeat = Date.now();
+                
+                // Start monitoring connection health
+                if (connectionCheckInterval) clearInterval(connectionCheckInterval);
+                connectionCheckInterval = setInterval(checkConnection, 60000); // Check every minute
+            };
+            
+            eventSource.onmessage = function(event) {
+                lastHeartbeat = Date.now();
+                const data = JSON.parse(event.data);
+                updateDashboard(data);
+            };
+            
+            eventSource.onerror = function() {
+                document.getElementById('connectionStatus').textContent = 'Connection Error';
+                document.getElementById('connectionStatus').className = 'connection-status disconnected';
+                
+                if (connectionCheckInterval) {
+                    clearInterval(connectionCheckInterval);
+                    connectionCheckInterval = null;
+                }
+                
+                // Exponential backoff for reconnection
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000); // Max 30 seconds
+                    reconnectAttempts++;
+                    
+                    document.getElementById('connectionStatus').textContent = `Reconnecting in ${Math.ceil(delay/1000)}s... (${reconnectAttempts}/${maxReconnectAttempts})`;
+                    
+                    setTimeout(connectSSE, delay);
+                } else {
+                    document.getElementById('connectionStatus').textContent = 'Connection Failed - Refresh Page';
+                }
+            };
+        }
+        
+        function checkConnection() {
+            // If no heartbeat received in 90 seconds, consider connection dead
+            if (Date.now() - lastHeartbeat > 90000) {
+                console.log('No heartbeat received, reconnecting...');
+                eventSource.close();
+                connectSSE();
+            }
+        }
+        
+        // Reconnect when page becomes visible again (handles tab switching)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && eventSource.readyState === EventSource.CLOSED) {
+                console.log('Page visible again, reconnecting...');
+                connectSSE();
+            }
+        });
+
+        function updateDashboard(data) {
+            document.getElementById('totalTunnels').textContent = data.totalTunnels || 0;
+            document.getElementById('activeTunnels').textContent = data.activeTunnels || 0;
+            document.getElementById('uptime').textContent = formatUptime(data.uptime || 0);
+            
+            const tunnelList = document.getElementById('tunnelList');
+            if (data.tunnels && data.tunnels.length > 0) {
+                tunnelList.innerHTML = data.tunnels.map(tunnel => `
+                    <div class="tunnel-item">
+                        <div>
+                            <div class="tunnel-subdomain">${tunnel.subdomain}</div>
+                            <div style="font-size: 0.9em; color: #cccccc;">Connected: ${tunnel.connectedTime}</div>
+                        </div>
+                        <div class="tunnel-status status-active">Active</div>
+                    </div>
+                `).join('');
+            } else {
+                tunnelList.innerHTML = '<p style="text-align: center; color: #cccccc; padding: 20px;">No active tunnels</p>';
+            }
+        }
+
+        function formatUptime(seconds) {
+            const days = Math.floor(seconds / 86400);
+            const hours = Math.floor((seconds % 86400) / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            
+            if (days > 0) return `${days}d ${hours}h`;
+            if (hours > 0) return `${hours}h ${mins}m`;
+            return `${mins}m`;
+        }
+
+        function checkAvailability() {
+            const subdomain = document.getElementById('subdomainInput').value.trim();
+            if (!subdomain) return;
+            
+            fetch(`/api/check/${encodeURIComponent(subdomain)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('searchResult');
+                    const isAvailable = data.available;
+                    resultDiv.innerHTML = `
+                        <div class="search-result ${isAvailable ? 'available' : 'unavailable'}">
+                            ${data.subdomain} is ${isAvailable ? 'available' : 'already in use'}
+                        </div>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error checking availability:', error);
+                    document.getElementById('searchResult').innerHTML = `
+                        <div class="search-result unavailable">
+                            Error checking availability
+                        </div>
+                    `;
+                });
+        }
+
+        document.getElementById('subdomainInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAvailability();
+            }
+        });
+
+        // Connect to Server-Sent Events
+        connectSSE();
+    </script>
+</body>
+</html>

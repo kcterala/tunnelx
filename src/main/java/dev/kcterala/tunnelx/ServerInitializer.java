@@ -32,7 +32,7 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
         // Custom handler for routing
         pipeline.addLast(new HttpRequestHandler(tunnelManager));
         
-        // WebSocket handler for tunnel connections
+        // WebSocket handler for tunnel connections only
         pipeline.addLast(new WebSocketServerProtocolHandler("/tunnel", null, true, MAX_MESSAGE_SIZE_BYTES));
         pipeline.addLast(new WebSocketHandler(tunnelManager));
     }
