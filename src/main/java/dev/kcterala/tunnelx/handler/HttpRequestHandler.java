@@ -78,7 +78,7 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
             
             if (tunnel != null) {
                 // Forward request to tunnel
-                forwardToTunnel(ctx, request, tunnel);
+                forwardToTunnel(ctx, request, tunnel, host);
                 return;
             }
         }
@@ -116,7 +116,12 @@ public class HttpRequestHandler extends SimpleChannelInboundHandler<FullHttpRequ
                subdomain.equals("tunnel") || subdomain.equals("api");
     }
     
-    private void forwardToTunnel(final ChannelHandlerContext ctx, final FullHttpRequest request, final TunnelConnection tunnel) {
+    private void forwardToTunnel(final ChannelHandlerContext ctx, final FullHttpRequest request, final TunnelConnection tunnel, final String originalHost) {
+        // Add X-Forwarded-Host header with the original host
+        if (originalHost != null) {
+            request.headers().set("X-Forwarded-Host", originalHost);
+        }
+        
         // Create tunnel request object
         final TunnelRequest tunnelRequest = new TunnelRequest(
             request.method().name(),
